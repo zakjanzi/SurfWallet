@@ -114,7 +114,7 @@ class _SeedPhraseState extends State<SeedPhrase> {
       child: ElevatedButton(
         onPressed: _controller1.text.isNotEmpty
             ? () {
-                Get.to(() => const CreatePasswordScreen());
+                Navigator.pushNamed(context, "create_password", arguments: _controller1.text);
               }
             : () {},
         style: ElevatedButton.styleFrom(

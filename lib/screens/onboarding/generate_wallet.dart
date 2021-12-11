@@ -5,7 +5,9 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:clipboard/clipboard.dart';
 import 'package:percent_indicator/percent_indicator.dart';
-
+import 'package:provider/provider.dart';
+import 'package:surf_wallet/service/token_service.dart';
+import 'package:web3dart/credentials.dart';
 import './seed_phrase.dart';
 import '../../utils/widgets/toast.dart';
 import './widgets/seed_phrase_dialog.dart';
@@ -27,10 +29,48 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
   bool changeButton = false;
   bool startAnimation1 = false;
   bool startAnimation2 = false;
+  String randomMnemonic = '';
+  String privateKey = '';
+  String publicKeyNoHex = '';
 
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context).size;
+    void _GestureTap() async {
+      setState(() {
+        changeButton = true;
+        step++;
+        percent = 100;
+        randomMnemonic = TokenService.generateMnemonic();
+        privateKey = TokenService.getPrivateKey(randomMnemonic);
+      });
+
+      await Future.delayed(const Duration(milliseconds: 1800), () {});
+      EthereumAddress publicKey = await TokenService.getPublicAddress(privateKey);
+      setState(() {
+        publicKeyNoHex = publicKey.hexNo0x;
+        step++;
+
+        if (step == 2) {
+          Future.delayed(const Duration(milliseconds: 100), () {
+            setState(() {
+              startAnimation1 = true;
+            });
+          });
+        }
+
+        percent = 0;
+        changeButton = false;
+      });
+
+      if (step == 4) {
+        Future.delayed(const Duration(milliseconds: 100), () {
+          setState(() {
+            startAnimation2 = true;
+          });
+        });
+      }
+    }
 
     return Scaffold(
       backgroundColor: context.theme.backgroundColor,
@@ -107,7 +147,7 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                   SizedBox(
                     height: mq.height * 0.01,
                   ),
-                  buildPublicTextField(mq, 'MIGfMA0GCSqGSlbKUH3VH'),
+                  buildKeyTextField(mq, publicKeyNoHex, "public"),
                 ],
               ),
             ),
@@ -121,12 +161,10 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                     left: startAnimation1 ? mq.width * 0.02 : 0,
                     duration: const Duration(seconds: 1),
                     child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: mq.width * 0.02),
+                      padding: EdgeInsets.symmetric(horizontal: mq.width * 0.02),
                       child: Container(
                         // height: mq.height * 0.125,
-                        padding:
-                            EdgeInsets.symmetric(vertical: mq.width * 0.03),
+                        padding: EdgeInsets.symmetric(vertical: mq.width * 0.03),
                         width: mq.width,
                         decoration: BoxDecoration(
                           color: context.theme.cardColor,
@@ -142,7 +180,9 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                                   ? const Color.fromRGBO(140, 140, 140, 1)
                                   : const Color.fromRGBO(163, 162, 173, 1),
                             ),
-                            const SizedBox(height: 5,),
+                            const SizedBox(
+                              height: 5,
+                            ),
                             Text(
                               'Your public key is similar to your bank\naccount number. Use it to receive\npayments.',
                               textAlign: TextAlign.center,
@@ -228,13 +268,13 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                   SizedBox(
                     height: mq.height * 0.01,
                   ),
-                  buildPublicTextField(mq, 'MIGfMA0GCSqGSlbKUH2VH'),
+                  buildKeyTextField(mq, privateKey, "private"),
                 ],
               ),
             ),
           if (step == 4)
             SizedBox(
-              height: mq.height * 0.17 ,
+              height: mq.height * 0.17,
               child: Stack(
                 children: [
                   AnimatedPositioned(
@@ -242,11 +282,9 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                     left: startAnimation2 ? mq.width * 0.02 : 0,
                     duration: const Duration(seconds: 1),
                     child: Padding(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: mq.width * 0.02),
+                      padding: EdgeInsets.symmetric(horizontal: mq.width * 0.02),
                       child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: mq.width * 0.03),
+                        padding: EdgeInsets.symmetric(vertical: mq.width * 0.03),
                         width: mq.width,
                         decoration: BoxDecoration(
                           color: context.theme.cardColor,
@@ -263,7 +301,9 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                                   ? const Color.fromRGBO(140, 140, 140, 1)
                                   : const Color.fromRGBO(163, 162, 173, 1),
                             ),
-                            const SizedBox(height: 5,),
+                            const SizedBox(
+                              height: 5,
+                            ),
                             Text(
                               'Your private key is your like your password\nMemorizing a bunch of random characters\nis hard, so let’s turn  your private key into\nhuman language.',
                               textAlign: TextAlign.center,
@@ -301,51 +341,6 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                 ],
               ),
             ),
-          // Padding(
-          //   padding: EdgeInsets.symmetric(horizontal: mq.width * 0.04),
-          //   child: Text(
-          //     'Your private key is your like your password. Memorizing a bunch of random characters is hard, so let’s turn  your private key into human language.',
-          //     textAlign: TextAlign.center,
-          //     style: TextStyle(color: context.theme.focusColor, fontSize: 15),
-          //   ),
-          // ),
-          // if (step == 5)
-          //   Center(
-          //     child: Column(
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         SizedBox(
-          //           height: mq.height * 0.035,
-          //         ),
-          //         SizedBox(
-          //           height: 26,
-          //           width: 26,
-          //           child: Get.isDarkMode
-          //               ? Image.asset('assets/images/infod.png')
-          //               : Image.asset('assets/images/info.png'),
-          //         ),
-          //         const SizedBox(
-          //           height: 1,
-          //         ),
-          //         Container(
-          //           width: mq.width * 0.85,
-          //           padding: EdgeInsets.all(mq.width * 0.04),
-          //           decoration: BoxDecoration(
-          //             color: const Color.fromRGBO(252, 243, 203, 1),
-          //             borderRadius: BorderRadius.circular(10),
-          //           ),
-          //           child: const Text(
-          //             'Think of the private key as the password to your wallet. It\'s a bit difficult to memorize 35 characters, so let\'s simplify the private key by extracting a Seed Phrase from it.',
-          //             style: TextStyle(
-          //               fontSize: 14.5,
-          //               height: 1.5,
-          //               color: Color.fromRGBO(51, 51, 51, 1),
-          //             ),
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
           if (step == 6)
             SizedBox(
               height: mq.height * 0.025,
@@ -389,155 +384,31 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'Book',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'man',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'man',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'test',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                  ],
+                  children: getRandomMnemonicComponent().sublist(0, 4),
                 ),
                 SizedBox(
                   height: mq.height * 0.036,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'word',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'wallet',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'short',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'eyes',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                  ],
+                  children: getRandomMnemonicComponent().sublist(4, 8),
                 ),
                 SizedBox(
                   height: mq.height * 0.036,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      'apply',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'pencil',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'door',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                    Text(
-                      'floor',
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w600,
-                        color: Get.isDarkMode
-                            ? const Color.fromRGBO(165, 165, 165, 1)
-                            : context.theme.primaryColor,
-                      ),
-                    ),
-                  ],
+                  children: getRandomMnemonicComponent().sublist(8, 12),
                 ),
                 SizedBox(
-                  height: mq.height * 0.1,
+                  height: mq.height * 0.09,
                 ),
                 SizedBox(
                   width: mq.width * 0.26,
                   height: 47,
                   child: OutlinedButton(
                     onPressed: () async {
-                      await FlutterClipboard.copy(
-                          'Book man test spoon wallet normal easy show hand slow rest');
+                      await FlutterClipboard.copy(randomMnemonic);
                       toast('Copied to clipboard');
                       setState(() {
                         isCopied = true;
@@ -565,38 +436,7 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
           const Spacer(),
           if (step <= 5)
             GestureDetector(
-              onTap: () async {
-                setState(() {
-                  changeButton = true;
-                  step++;
-                  percent = 100;
-                });
-
-                await Future.delayed(const Duration(milliseconds: 1800), () {});
-
-                setState(() {
-                  step++;
-
-                  if (step == 2) {
-                    Future.delayed(const Duration(milliseconds: 100), () {
-                      setState(() {
-                        startAnimation1 = true;
-                      });
-                    });
-                  }
-
-                  percent = 0;
-                  changeButton = false;
-                });
-
-                if (step == 4) {
-                  Future.delayed(const Duration(milliseconds: 100), () {
-                    setState(() {
-                      startAnimation2 = true;
-                    });
-                  });
-                }
-              },
+              onTap: _GestureTap,
               child: Center(
                 child: AnimatedContainer(
                   duration: const Duration(seconds: 1),
@@ -622,7 +462,7 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
               ),
             ),
           SizedBox(
-            height: mq.height * 0.028,
+            height: mq.height * 0.01,
           ),
           step >= 6
               ? Center(
@@ -740,7 +580,25 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
     );
   }
 
-  Widget buildPublicTextField(Size mq, String keyName) {
+  List<Widget> getRandomMnemonicComponent() {
+    List<Widget> widgetList = randomMnemonic
+        .split(" ")
+        .map((element) => Text(
+              element,
+              style: TextStyle(
+                fontSize: 15,
+                fontWeight: FontWeight.w600,
+                color: Get.isDarkMode
+                    ? const Color.fromRGBO(165, 165, 165, 1)
+                    : context.theme.primaryColor,
+              ),
+            ))
+        .toList();
+    return widgetList;
+  }
+
+  Widget buildKeyTextField(Size mq, String keyName, String keyType) {
+    print("keyName: $keyName, keyType: $keyType");
     return Container(
       height: 55,
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 11),
@@ -755,20 +613,20 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              keyName,
+              (keyType == "public") ? keyName : "${keyName.substring(0, 33)}...",
               style: TextStyle(
-                fontSize: 17,
+                fontSize: 15,
                 color: context.theme.primaryColor,
               ),
             ),
-            if (keyName == "MIGfMA0GCSqGSlbKUH2VH")
+            if (keyType == "private")
               IconButton(
                 icon: Icon(
                   Icons.copy,
                   color: context.theme.canvasColor,
                 ),
                 onPressed: () async {
-                  await FlutterClipboard.copy('MIGfMA0GCSqGSlbKUH2VH');
+                  await FlutterClipboard.copy(privateKey);
                   toast('Copied to clipboard');
                 },
               ),
@@ -786,9 +644,7 @@ class _GenerateWalletScreenState extends State<GenerateWalletScreen> {
         onPressed: isCopied == false
             ? () {}
             : () {
-                Get.to(
-                  () => const SeedPhrase(),
-                );
+                Navigator.pushNamed(context, "seed_phrase");
               },
         style: ElevatedButton.styleFrom(
           elevation: 1,

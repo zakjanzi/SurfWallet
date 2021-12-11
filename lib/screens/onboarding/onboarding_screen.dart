@@ -31,8 +31,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
     {
       "type": "Portfolio",
       "header": "Portfolio Management",
-      "text":
-          "Invest & grow your portfolio. Get updates on the latest crypto news.",
+      "text": "Invest & grow your portfolio. Get updates on the latest crypto news.",
       "image": "assets/images/onboard1.png"
     },
   ];
@@ -140,9 +139,7 @@ class _OnBoardingScreenState extends State<OnBoardingScreen> {
   Widget buildSkipButton() {
     return TextButton(
       onPressed: () {
-        Get.to(
-          () => const GenerateWalletScreen(),
-        );
+        Navigator.pushNamed(context, "generate_wallet");
       },
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
