@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:flutter/material.dart';
+import 'package:surf_wallet/screens/routers.dart';
 import 'package:surf_wallet/utils/themes.dart';
 
 import './screens/splash/splash_screen.dart';
+import 'screens/home/bottom_nav_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -18,7 +20,8 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: Themes.light,
       darkTheme: Themes.dark,
-      home: SplashScreen(),
+      initialRoute: 'splash',
+      onGenerateRoute: onGenerateRoute,
     );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:get/get.dart';
-
+import 'package:provider/provider.dart';
+import 'package:surf_wallet/screens/onboarding/seed_phrase.dart';
+import 'package:surf_wallet/models/wallet.dart' as myWallet;
 import './account_info.dart';
 
 class CreatePasswordScreen extends StatefulWidget {
-  const CreatePasswordScreen({Key key}) : super(key: key);
-
+  final String seedPhrase;
+  const CreatePasswordScreen({Key key, this.seedPhrase}) : super(key: key);
   @override
   State<CreatePasswordScreen> createState() => _CreatePasswordScreenState();
 }
@@ -32,7 +34,6 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final mq = MediaQuery.of(context).size;
-
     return Scaffold(
       backgroundColor: context.theme.backgroundColor,
       appBar: AppBar(
@@ -219,8 +220,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
           setState(() {
             strength1 = "Medium";
           });
-        } else if (_controller1.text.length >= 24 &&
-            containsNumber(_controller1.text)) {
+        } else if (_controller1.text.length >= 24 && containsNumber(_controller1.text)) {
           setState(() {
             strength1 = "Strong";
           });
@@ -294,8 +294,7 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
           setState(() {
             strength2 = "Medium";
           });
-        } else if (_controller2.text.length >= 24 &&
-            containsNumber(_controller2.text)) {
+        } else if (_controller2.text.length >= 24 && containsNumber(_controller2.text)) {
           setState(() {
             strength2 = "Strong";
           });
@@ -316,10 +315,14 @@ class _CreatePasswordScreenState extends State<CreatePasswordScreen> {
         onPressed: _controller1.text.isNotEmpty &&
                 _controller2.text.isNotEmpty &&
                 (_controller1.text == _controller2.text)
-            ? () {
-                Get.to(
-                  () => const AccountInformationScreen(),
-                );
+            ? () async {
+                print('seed phrase yo : ${widget.seedPhrase}');
+                // Map obj = {'randomMnemonic': widget.seedPhrase};
+                // await Provider.of<myWallet.Wallet>(context, listen: false)
+                //     .add(obj, _controller1.text);
+                Navigator.pushNamed(context, "account_info",
+                    arguments: myWallet.TempWallet(
+                        seedPhrase: widget.seedPhrase, password: _controller1.text));
               }
             : () {},
         style: ElevatedButton.styleFrom(

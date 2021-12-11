@@ -4,17 +4,18 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:clipboard/clipboard.dart';
+import 'package:surf_wallet/models/wallet.dart';
 
 import '../home/bottom_nav_screen.dart';
 import '../../utils/widgets/toast.dart';
 import './widgets/seed_phrase_dialog.dart';
 
 class AccountInformationScreen extends StatefulWidget {
-  const AccountInformationScreen({Key key}) : super(key: key);
+  final TempWallet tempWallet;
+  const AccountInformationScreen({Key key, this.tempWallet}) : super(key: key);
 
   @override
-  State<AccountInformationScreen> createState() =>
-      _AccountInformationScreenState();
+  State<AccountInformationScreen> createState() => _AccountInformationScreenState();
 }
 
 class _AccountInformationScreenState extends State<AccountInformationScreen> {
@@ -186,9 +187,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
       child: ElevatedButton(
         onPressed: isSelected == true
             ? () {
-                Get.to(
-                  () => BottomNavScreen(),
-                );
+                Navigator.pushNamed(context, "/");
               }
             : () {},
         style: ElevatedButton.styleFrom(
@@ -215,8 +214,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
 
   Widget buildAccountInfo(Size mq) {
     return Container(
-      padding: EdgeInsets.symmetric(
-          vertical: mq.width * 0.04, horizontal: mq.width * 0.04),
+      padding: EdgeInsets.symmetric(vertical: mq.width * 0.04, horizontal: mq.width * 0.04),
       margin: const EdgeInsets.symmetric(vertical: 10),
       decoration: BoxDecoration(
         color: context.theme.cardColor,
@@ -229,8 +227,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
             children: [
               const Text(
                 'Seed phrase :',
-                style: TextStyle(
-                    color: Color.fromRGBO(160, 160, 162, 1), fontSize: 16),
+                style: TextStyle(color: Color.fromRGBO(160, 160, 162, 1), fontSize: 16),
               ),
               IconButton(
                 icon: Icon(
@@ -239,8 +236,7 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
                   size: 20,
                 ),
                 onPressed: () async {
-                  await FlutterClipboard.copy(
-                      'Book man test spoon wallet normal easy show hand slow rest');
+                  await FlutterClipboard.copy(widget.tempWallet.seedPhrase);
                   toast('Copied to clipboard');
                 },
               ),
@@ -250,9 +246,8 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
             height: mq.height * 0.01,
           ),
           Text(
-            'Book man test spoon wallet normal easy show hand slow rest',
-            style: TextStyle(
-                color: context.theme.primaryColor, fontSize: 14.5, height: 1.5),
+            widget.tempWallet.seedPhrase,
+            style: TextStyle(color: context.theme.primaryColor, fontSize: 14.5, height: 1.5),
           ),
           SizedBox(
             height: mq.height * 0.01,
@@ -267,29 +262,25 @@ class _AccountInformationScreenState extends State<AccountInformationScreen> {
             children: [
               const Text(
                 'Password: ',
-                style: TextStyle(
-                    color: Color.fromRGBO(160, 160, 162, 1), fontSize: 16),
+                style: TextStyle(color: Color.fromRGBO(160, 160, 162, 1), fontSize: 16),
               ),
               const SizedBox(
                 width: 10,
               ),
               isPasswordSeen == true
                   ? Text(
-                      'Account#44!',
-                      style: TextStyle(
-                          color: context.theme.primaryColor, fontSize: 16),
+                      widget.tempWallet.password,
+                      style: TextStyle(color: context.theme.primaryColor, fontSize: 16),
                     )
                   : Text(
-                      '*********',
-                      style: TextStyle(
-                          color: context.theme.primaryColor, fontSize: 16),
+                      widget.tempWallet.password.replaceRange(0, widget.tempWallet.password.length,
+                          '*' * widget.tempWallet.password.length),
+                      style: TextStyle(color: context.theme.primaryColor, fontSize: 16),
                     ),
               const Spacer(),
               IconButton(
                 icon: Icon(
-                  isPasswordSeen == true
-                      ? Icons.visibility
-                      : Icons.visibility_off,
+                  isPasswordSeen == true ? Icons.visibility : Icons.visibility_off,
                   color: context.theme.canvasColor,
                   size: 20,
                 ),
